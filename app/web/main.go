@@ -1,9 +1,9 @@
 package main
 
 import (
-	"learn_web/config"
-	"learn_web/handlers"
-	"learn_web/render"
+	"booking/config"
+	"booking/handlers"
+	"booking/render"
 	"net/http"
 	"time"
 

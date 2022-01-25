@@ -1,8 +1,8 @@
 package main
 
 import (
-	"learn_web/config"
-	"learn_web/handlers"
+	"booking/config"
+	"booking/handlers"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

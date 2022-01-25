@@ -2,10 +2,10 @@
 package render
 
 import (
+	"booking/config"
+	"booking/models"
 	"bytes"
 	"html/template"
-	"learn_web/config"
-	"learn_web/models"
 	"net/http"
 	"path/filepath"
 

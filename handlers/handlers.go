@@ -2,9 +2,9 @@
 package handlers
 
 import (
-	"learn_web/config"
-	"learn_web/models"
-	"learn_web/render"
+	"booking/config"
+	"booking/models"
+	"booking/render"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
