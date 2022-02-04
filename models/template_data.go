@@ -1,6 +1,8 @@
 // Package models provides ...
 package models
 
+import form "booking/forms"
+
 type TemplateData struct {
 	StringMap map[string]string
 	IntMap    map[string]int
@@ -10,4 +12,5 @@ type TemplateData struct {
 	Flash     string
 	Warning   string
 	Error     string
+	Form      *form.Form
 }

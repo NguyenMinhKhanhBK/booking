@@ -3,7 +3,9 @@ package main
 import (
 	"booking/config"
 	"booking/handlers"
+	"booking/models"
 	"booking/render"
+	"encoding/gob"
 	"net/http"
 	"time"
 
@@ -14,8 +16,28 @@ import (
 const PORT_NUMBER = ":8080"
 
 var session *scs.SessionManager
+var app config.AppConfig
 
 func main() {
+	if err := run(); err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Infof("Starting application at port %v", PORT_NUMBER)
+
+	server := &http.Server{
+		Addr:    PORT_NUMBER,
+		Handler: routes(&app),
+	}
+
+	logrus.Info(server.ListenAndServe())
+
+}
+
+func run() error {
+	// What to put in the session
+	gob.Register(models.Reservation{})
+
 	app := config.AppConfig{}
 
 	// session management
@@ -30,6 +52,7 @@ func main() {
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		logrus.WithError(err).Fatal("cannot create template cache")
+		return err
 	}
 	app.TemplateCache = tc
 	app.UseCache = false
@@ -39,13 +62,5 @@ func main() {
 
 	render.SetAppConfig(&app)
 
-	logrus.Infof("Starting application at port %v", PORT_NUMBER)
-
-	server := &http.Server{
-		Addr:    PORT_NUMBER,
-		Handler: routes(&app),
-	}
-
-	logrus.Info(server.ListenAndServe())
-
+	return nil
 }

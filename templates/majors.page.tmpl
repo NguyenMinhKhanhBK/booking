@@ -1,0 +1,60 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+
+        <div class="row">
+            <div class="col">
+                <img class="img-fluid mx-auto room-image d-block img-thumbnail" src="static/images/marjors-suite.png" alt="room image">
+                
+            </div>
+            
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <h1 class="text-center mt-4">Major Suite</h1>
+                <p>Much like how a curious child takes pleasure in making toys by joining LEGO blocks—and then experiences a similar joy in taking things apart to see how they’re made, a web developer’s job is to use the basic building blocks of the web (like HTML, CSS and JavaScript) to create something complex like a webpage. Don’t sweat it! We’ll get into all of those terms soon.
+                    It is also the web developer’s job to diagnose problems in a website’s functionality, to understand how something works by reading the code behind it, and to make changes to fix any issues. That essentially makes web developers the physicians of the world wide web. When we talk about the world wide web, we’re mainly referring to websites and web applications. At this point, the curious aspiring developer in you might be wondering, “What’s the difference between the two?”
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col text-center">
+                <a id="checkAvailabilityBtn" href="#!" class="btn btn-success">Check Availability</a>
+            </div>
+        </div>
+
+
+    </div>
+
+{{end}}
+
+{{define "js"}}
+    <script>
+    document.getElementById("checkAvailabilityBtn").addEventListener("click", function () {
+        let html = `
+        <form id="check-availability-form" action="" method="post" novalidate class="needs-validation" autocomplete="off">
+            <div class="row">
+                <div class="col">
+                    <div class="row" id="reservation-dates-modal">
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                        </div>
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        `;
+        attention.custom({
+            title: 'Choose your dates',
+            msg: html,
+        });
+    })
+    </script>
+{{end}}
