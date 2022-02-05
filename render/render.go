@@ -16,7 +16,7 @@ import (
 )
 
 var app *config.AppConfig
-var pathToTemplate = "./template"
+var pathToTemplate = "./templates"
 
 func SetAppConfig(a *config.AppConfig) {
 	app = a

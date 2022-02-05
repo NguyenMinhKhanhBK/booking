@@ -4,6 +4,7 @@ package handlers
 import (
 	"booking/config"
 	form "booking/forms"
+	"booking/helpers"
 	"booking/models"
 	"booking/render"
 	"encoding/json"
@@ -31,26 +32,12 @@ func NewHandlers(r *Repository) {
 }
 
 func (re *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	remoteIP := r.RemoteAddr
-	re.App.Session.Put(r.Context(), "remote_ip", remoteIP)
-
 	render.RenderTemplate(w, r, "home.page.tmpl", &models.TemplateData{})
 }
 
 func (re *Repository) About(w http.ResponseWriter, r *http.Request) {
-	// perform some logic
-	remoteIP := re.App.Session.GetString(r.Context(), "remote_ip")
-	logrus.WithField("remoteIP", remoteIP).Info("GetRemoteIPFromCookie")
-
-	stringMap := map[string]string{
-		"test":      "Hello Again",
-		"remote_ip": remoteIP,
-	}
-
 	// send data
-	render.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{
-		StringMap: stringMap,
-	})
+	render.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{})
 }
 
 func (re *Repository) Generals(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +65,6 @@ type jsonResponse struct {
 }
 
 func (re *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
-	logrus.Info("khanhnguyen - AvailabilityJSON")
 	resp := jsonResponse{
 		OK:      true,
 		Message: "Available",
@@ -86,7 +72,7 @@ func (re *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	out, err := json.MarshalIndent(resp, "", "     ")
 	if err != nil {
-		logrus.WithError(err).Error("failed to marshal JSON")
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -110,7 +96,7 @@ func (re *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 func (re *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		logrus.WithError(err).Error("failed to parse form")
+		helpers.ServerError(w, err)
 		return
 	}
 
