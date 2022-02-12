@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  postgresql:
+    container_name: postgresql_container
+    image: bitnami/postgresql:latest
+    ports:
+      - 5432:5432
+    volumes:
+      - /Users/khanhnguyen/workspaces/database-persist:/bitnami/postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE=booking

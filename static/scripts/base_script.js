@@ -97,7 +97,7 @@ function Prompt() {
     async function custom(c) {
         const {
             msg = "",
-            title = "",
+                title = "",
         } = c;
 
         const {
@@ -113,7 +113,7 @@ function Prompt() {
                 if (c.willOpen !== undefined) {
                     c.willOpen();
                 }
-            }, 
+            },
             didOpen: () => {
                 if (c.didOpen !== undefined) {
                     c.didOpen();
