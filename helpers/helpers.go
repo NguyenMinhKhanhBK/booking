@@ -21,6 +21,10 @@ func ClientError(w http.ResponseWriter, status int) {
 }
 
 func ServerError(w http.ResponseWriter, err error) {
+	if err == nil {
+		logrus.Error("error is nil")
+		return
+	}
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 	logrus.Error(trace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

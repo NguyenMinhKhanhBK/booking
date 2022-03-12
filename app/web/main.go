@@ -5,6 +5,8 @@ import (
 	"booking/handlers"
 	"booking/models"
 	"booking/render"
+	"booking/repository"
+	sqldriver "booking/sql_driver"
 	"encoding/gob"
 	"net/http"
 	"time"
@@ -37,6 +39,9 @@ func main() {
 func run() error {
 	// What to put in the session
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
 
 	app := config.AppConfig{}
 
@@ -49,6 +54,16 @@ func run() error {
 
 	app.Session = session
 
+	// connect to database
+	logrus.Info("Connecting to database...")
+	db, err := sqldriver.ConnectSQL("host=localhost port=5432 dbname=booking user=postgres password=postgres")
+	if err != nil {
+		logrus.WithError(err).Fatal("Cannot connect to database. Dying...")
+	}
+	logrus.Info("Connected to database!")
+
+	repoDB := repository.NewPostgresRepo(&app, db)
+
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		logrus.WithError(err).Fatal("cannot create template cache")
@@ -57,7 +72,7 @@ func run() error {
 	app.TemplateCache = tc
 	app.UseCache = false
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, repoDB)
 	handlers.NewHandlers(repo)
 
 	render.SetAppConfig(&app)
