@@ -2,6 +2,7 @@
 package config
 
 import (
+	"booking/models"
 	"html/template"
 
 	"github.com/alexedwards/scs/v2"
@@ -13,6 +14,7 @@ type AppConfig struct {
 	UseCache      bool
 	TemplateCache map[string]*template.Template
 	Session       *scs.SessionManager
+	MailChan      chan models.MailData
 }
 
 func (a *AppConfig) GetTemplateCache() map[string]*template.Template {

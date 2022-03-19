@@ -96,19 +96,23 @@ function Prompt() {
 
     async function custom(c) {
         const {
-            msg = "",
+            icon = "",
+                msg = "",
                 title = "",
+                showConfirmButton = true,
         } = c;
 
         const {
             value: result
         } = await Swal.fire({
+            icon: icon,
             title: title,
             html: msg,
             backdrop: false,
             allowOutsideClick: false,
             focusConfirm: false,
             showCancelButton: true,
+            showConfirmButton: showConfirmButton,
             willOpen: () => {
                 if (c.willOpen !== undefined) {
                     c.willOpen();
@@ -151,4 +155,75 @@ function Prompt() {
         error: error,
         custom: custom,
     }
+}
+
+function buttonHandler(roomID, csrfToken) {
+        let html = `
+        <form id="check-availability-form" action="/search-availability-json" method="post" novalidate class="needs-validation" autocomplete="off">
+            <div class="row">
+                <div class="col">
+                    <div class="row" id="reservation-dates-modal">
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                        </div>
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        `;
+        attention.custom({
+            title: 'Choose your dates',
+            msg: html,
+            willOpen: () => {
+                const elem = document.getElementById("reservation-dates-modal");
+                const rp = new DateRangePicker(elem, {
+                    format: 'yyyy-mm-dd',
+                    showOnFocus: true,
+                    minDate: new Date(),
+                })
+            },
+            didOpen: () => {
+                document.getElementById("start").removeAttribute("disabled");
+                document.getElementById("end").removeAttribute("disabled");
+            },
+            callback: function(result) {
+                let form = document.getElementById("check-availability-form");
+                let formData = new FormData(form);
+                formData.append("csrf_token", csrfToken);
+                formData.append("room_id", roomID);
+
+                    fetch("/search-availability-json", {
+                            method: "post",
+                            body: formData,
+                        })
+                    .then(rsp => rsp.json())
+                    .then(data => {
+                            if (data.ok) {
+                                attention.custom({
+                                    icon: 'success',
+                                    msg: '<p>Room is available!</p>'
+                                        + '<p><a href="/book-room?id='
+                                        + data.room_id
+                                        + '&s='
+                                        + data.start_date
+                                        + '&e='
+                                        + data.end_date
+                                        + '" class="btn btn-primary">'
+                                        + 'Book now!</a></p>',
+
+                                    showConfirmButton: false,
+                                })
+                            } else {
+                                attention.error({
+                                    msg: "No availability",
+                                });
+                            }
+                    })
+            }
+        });
+
 }

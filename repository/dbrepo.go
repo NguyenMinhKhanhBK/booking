@@ -75,7 +75,7 @@ func (p *postgressDBRepo) SearchAvailabilityByDatesByRoomID(roomID int, start, e
 			room_restrictions
 		where 
 			room_id = $1 
-			and $2 < end_date and $3 > start_date;
+			and $2 <= end_date and $3 >= start_date;
 	`
 
 	var numRows int

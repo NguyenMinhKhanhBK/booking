@@ -21,9 +21,16 @@ var session *scs.SessionManager
 var app config.AppConfig
 
 func main() {
-	if err := run(); err != nil {
+	db, err := run()
+	if err != nil {
 		logrus.Fatal(err)
 	}
+	defer db.SQL.Close()
+
+	defer close(app.MailChan)
+
+	logrus.Info("Starting email listener")
+	listenForMail()
 
 	logrus.Infof("Starting application at port %v", PORT_NUMBER)
 
@@ -36,14 +43,14 @@ func main() {
 
 }
 
-func run() error {
+func run() (*sqldriver.DB, error) {
 	// What to put in the session
 	gob.Register(models.Reservation{})
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
 
-	app := config.AppConfig{}
+	app = config.AppConfig{}
 
 	// session management
 	session = scs.New()
@@ -62,12 +69,14 @@ func run() error {
 	}
 	logrus.Info("Connected to database!")
 
+	app.MailChan = make(chan models.MailData)
+
 	repoDB := repository.NewPostgresRepo(&app, db)
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		logrus.WithError(err).Fatal("cannot create template cache")
-		return err
+		return nil, err
 	}
 	app.TemplateCache = tc
 	app.UseCache = false
@@ -77,5 +86,5 @@ func run() error {
 
 	render.SetAppConfig(&app)
 
-	return nil
+	return db, nil
 }

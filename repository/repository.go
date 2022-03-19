@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -destination=../mocks/mock_database_repo.go -package=mocks -source=${GOFILE}
 type DatabaseRepo interface {
 	AllUsers() bool
 	InsertReservation(res models.Reservation) (int, error)
