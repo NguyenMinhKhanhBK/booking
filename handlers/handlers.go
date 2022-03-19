@@ -386,3 +386,55 @@ func (re *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
 	re.App.Session.Put(r.Context(), "reservation", res)
 	http.Redirect(w, r, "/make-reservation", http.StatusTemporaryRedirect)
 }
+
+func (re *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, r, "login.page.tmpl", &models.TemplateData{Form: form.New(nil)})
+}
+
+func (re *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
+	re.App.Session.RenewToken(r.Context())
+
+	err := r.ParseForm()
+	if err != nil {
+		logrus.WithError(err).Error("cannot parse form")
+		re.App.Session.Put(r.Context(), "error", "cannot parse form")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	form := form.New(r.PostForm)
+	form.Require("email", "password")
+	form.IsEmail("email")
+
+	if !form.Valid() {
+		render.RenderTemplate(w, r, "login.page.tmpl", &models.TemplateData{
+			Form: form,
+		})
+		return
+	}
+
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+	id, _, err := re.DB.Authenticate(email, password)
+	if err != nil {
+		logrus.WithError(err).Error("failed to authenticate user")
+		re.App.Session.Put(r.Context(), "error", "Invalid login credentials")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	re.App.Session.Put(r.Context(), "user_id", id)
+	re.App.Session.Put(r.Context(), "flash", "Logged in successfully")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	re.App.Session.Destroy(r.Context())
+	re.App.Session.RenewToken(r.Context())
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (re *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{})
+}

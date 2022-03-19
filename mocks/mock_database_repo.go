@@ -122,3 +122,33 @@ func (mr *MockDatabaseRepoMockRecorder) GetRoomByID(id interface{}) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetRoomByID), id)
 }
+
+// UpdateUser mocks base method
+func (m *MockDatabaseRepo) UpdateUser(u models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", u)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser indicates an expected call of UpdateUser
+func (mr *MockDatabaseRepoMockRecorder) UpdateUser(u interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockDatabaseRepo)(nil).UpdateUser), u)
+}
+
+// Authenticate mocks base method
+func (m *MockDatabaseRepo) Authenticate(email, testPassword string) (int, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Authenticate", email, testPassword)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Authenticate indicates an expected call of Authenticate
+func (mr *MockDatabaseRepoMockRecorder) Authenticate(email, testPassword interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockDatabaseRepo)(nil).Authenticate), email, testPassword)
+}

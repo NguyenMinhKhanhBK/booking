@@ -3,6 +3,7 @@ package main
 import (
 	"booking/config"
 	"booking/handlers"
+	"booking/helpers"
 	"booking/models"
 	"booking/render"
 	"booking/repository"
@@ -85,6 +86,7 @@ func run() (*sqldriver.DB, error) {
 	handlers.NewHandlers(repo)
 
 	render.SetAppConfig(&app)
+	helpers.SetAppConfig(&app)
 
 	return db, nil
 }
