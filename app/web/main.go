@@ -9,7 +9,10 @@ import (
 	"booking/repository"
 	sqldriver "booking/sql_driver"
 	"encoding/gob"
+	"flag"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
@@ -52,6 +55,22 @@ func run() (*sqldriver.DB, error) {
 	gob.Register(models.Restriction{})
 	gob.Register(map[string]int{})
 
+	// setup flags
+	useCache := flag.Bool("cache", true, "Use template cache")
+	dbHost := flag.String("dbhost", "localhost", "Databse host")
+	dbName := flag.String("dbname", "", "Databse name")
+	dbUser := flag.String("dbuser", "", "Databse user")
+	dbPass := flag.String("dbpass", "", "Databse password")
+	dbPort := flag.String("dbport", "5432", "Databse port")
+	dbSSL := flag.String("dbssl", "disable", "Databse ssl settings (disable, prefer, require)")
+
+	flag.Parse()
+
+	if *dbName == "" || *dbUser == "" {
+		logrus.Error("Missing required flags")
+		os.Exit(1)
+	}
+
 	app = config.AppConfig{}
 
 	// session management
@@ -65,7 +84,8 @@ func run() (*sqldriver.DB, error) {
 
 	// connect to database
 	logrus.Info("Connecting to database...")
-	db, err := sqldriver.ConnectSQL("host=localhost port=5432 dbname=booking user=postgres password=postgres")
+	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
+	db, err := sqldriver.ConnectSQL(connectionStr)
 	if err != nil {
 		logrus.WithError(err).Fatal("Cannot connect to database. Dying...")
 	}
@@ -81,7 +101,7 @@ func run() (*sqldriver.DB, error) {
 		return nil, err
 	}
 	app.TemplateCache = tc
-	app.UseCache = false
+	app.UseCache = *useCache
 
 	repo := handlers.NewRepo(&app, repoDB)
 	handlers.NewHandlers(repo)

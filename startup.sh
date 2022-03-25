@@ -6,4 +6,4 @@ then
     rm -f booking
 fi
 go build -o booking app/web/*.go
-./booking
+./booking -dbname=booking -dbuser=postgres -dbpass=postgres -cache=false
