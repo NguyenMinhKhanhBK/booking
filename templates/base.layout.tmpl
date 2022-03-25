@@ -48,13 +48,21 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/contact">Contact</a>
                     </li>
-                    <li class="nav-item">
-                        {{if eq .IsAuthenticated true}}
-                            <a class="nav-link" href="/user/logout">Logout</a>
-                        {{else}}
-                            <a class="nav-link" href="/user/login">Login</a>
-                        {{end}}
+                    {{if eq .IsAuthenticated true}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Admin
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/admin/dashboard">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="/user/logout">Logout</a></li>
+                        </ul>
                     </li>
+                    {{else}}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user/login">Login</a>
+                        </li>
+                        {{end}}
                 </ul>
             </div>
         </div>
@@ -89,20 +97,20 @@
     {{ block "js" . }}
 
     {{ end }}
-    
+
     <script src="/static/scripts/base_script.js"></script>
     <script>
-        {{with .Error}}
-            notify("{{.}}", "error")
-        {{end}}
+    {{with .Error}}
+    notify("{{.}}", "error")
+    {{end}}
 
-        {{with .Flash}}
-            notify("{{.}}", "success")
-        {{end}}
+    {{with .Flash}}
+    notify("{{.}}", "success")
+    {{end}}
 
-        {{with .Warning}}
-            notify("{{.}}", "warning")
-        {{end}}
+    {{with .Warning}}
+    notify("{{.}}", "warning")
+    {{end}}
     </script>
 
 

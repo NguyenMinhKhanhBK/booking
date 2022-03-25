@@ -215,3 +215,284 @@ func (p *postgressDBRepo) Authenticate(email, testPassword string) (int, string,
 
 	return id, hashedPassword, nil
 }
+
+func (p *postgressDBRepo) AllReservations() ([]models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date, r.end_date, r.room_id, r.created_at, r.updated_at, r.processed, rm.id, rm.room_name
+		from reservations r
+		left join rooms rm 
+		on (r.room_id = rm.id)
+		order by r.start_date asc
+	`
+
+	rows, err := p.DB.SQL.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var m models.Reservation
+		err = rows.Scan(
+			&m.ID,
+			&m.FirstName,
+			&m.LastName,
+			&m.Email,
+			&m.Phone,
+			&m.StartDate,
+			&m.EndDate,
+			&m.RoomID,
+			&m.CreatedAt,
+			&m.UpdatedAt,
+			&m.Processed,
+			&m.Room.ID,
+			&m.Room.RoomName,
+		)
+
+		if err != nil {
+			return reservations, err
+		}
+
+		reservations = append(reservations, m)
+	}
+
+	if err = rows.Err(); err != nil {
+		return reservations, err
+	}
+
+	return reservations, nil
+}
+
+func (p *postgressDBRepo) AllNewReservations() ([]models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date, r.end_date, r.room_id, r.created_at, r.updated_at, rm.id, rm.room_name
+		from reservations r
+		left join rooms rm 
+		on (r.room_id = rm.id)
+		where processed = 0
+		order by r.start_date asc
+	`
+
+	rows, err := p.DB.SQL.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var m models.Reservation
+		err = rows.Scan(
+			&m.ID,
+			&m.FirstName,
+			&m.LastName,
+			&m.Email,
+			&m.Phone,
+			&m.StartDate,
+			&m.EndDate,
+			&m.RoomID,
+			&m.CreatedAt,
+			&m.UpdatedAt,
+			&m.Room.ID,
+			&m.Room.RoomName,
+		)
+
+		if err != nil {
+			return reservations, err
+		}
+
+		reservations = append(reservations, m)
+	}
+
+	if err = rows.Err(); err != nil {
+		return reservations, err
+	}
+
+	return reservations, nil
+}
+
+func (p *postgressDBRepo) GetReservationByID(id int) (models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var res models.Reservation
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, 
+			r.start_date, r.end_date, r.room_id, r.created_at, r.updated_at, r.processed,
+			rm.id, rm.room_name
+		from reservations r
+		left join rooms rm 
+		on (r.room_id = rm.id)
+		where r.id = $1
+	`
+
+	row := p.DB.SQL.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&res.ID,
+		&res.FirstName,
+		&res.LastName,
+		&res.Email,
+		&res.Phone,
+		&res.StartDate,
+		&res.EndDate,
+		&res.RoomID,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.Processed,
+		&res.Room.ID,
+		&res.Room.RoomName,
+	)
+
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func (p *postgressDBRepo) UpdateReservation(r models.Reservation) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+		update reservations set first_name = $1, last_name = $2, email = $3, phone = $4, updated_at = $5
+		where id = $6
+	`
+
+	_, err := p.DB.SQL.ExecContext(ctx, query,
+		r.FirstName,
+		r.LastName,
+		r.Email,
+		r.Phone,
+		time.Now(),
+		r.ID)
+
+	return err
+}
+
+func (p *postgressDBRepo) DeleteReservation(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+		delete from reservations where id = $1
+	`
+
+	_, err := p.DB.SQL.ExecContext(ctx, query, id)
+	return err
+}
+
+func (p *postgressDBRepo) UpdateProcessedForReservation(id, processed int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+		update reservations set processed = $1 where id = $2
+	`
+
+	_, err := p.DB.SQL.ExecContext(ctx, query, processed, id)
+	return err
+}
+
+func (p *postgressDBRepo) AllRooms() ([]models.Room, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var rooms []models.Room
+
+	query := `select id, room_name, created_at, updated_at from rooms order by room_name`
+
+	rows, err := p.DB.SQL.QueryContext(ctx, query)
+	if err != nil {
+		return rooms, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.Room
+		err = rows.Scan(
+			&r.ID,
+			&r.RoomName,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+		)
+
+		if err != nil {
+			return rooms, err
+		}
+
+		rooms = append(rooms, r)
+	}
+
+	return rooms, rows.Err()
+}
+
+func (p *postgressDBRepo) GetRestrictionsForRoomByDate(roomID int, start, end time.Time) ([]models.RoomRestriction, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var restrictions []models.RoomRestriction
+	query := `select id, coalesce(reservation_id, 0), restriction_id, room_id, start_date, end_date
+			  from room_restrictions where $1 < end_date and $2 >= start_date and room_id = $3`
+
+	rows, err := p.DB.SQL.QueryContext(ctx, query, start, end, roomID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.RoomRestriction
+		err = rows.Scan(
+			&r.ID,
+			&r.ReservationID,
+			&r.RestrictionID,
+			&r.RoomID,
+			&r.StartDate,
+			&r.EndDate,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		restrictions = append(restrictions, r)
+	}
+
+	if rows.Err() != nil {
+		return nil, err
+	}
+
+	return restrictions, nil
+}
+
+func (p *postgressDBRepo) InsertBlockForRoom(id int, startDate time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `insert into room_restrictions (start_date, end_date, room_id, restriction_id, created_at, updated_at) 
+			  values ($1, $2, $3, $4, $5, $6)`
+
+	_, err := p.DB.SQL.ExecContext(ctx, query, startDate, startDate.AddDate(0, 0, 1), id, 2, time.Now(), time.Now())
+	return err
+}
+
+func (p *postgressDBRepo) DeleteBlockByID(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `delete from room_restrictions where id = $1`
+
+	_, err := p.DB.SQL.ExecContext(ctx, query, id)
+	return err
+}
